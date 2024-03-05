@@ -102,91 +102,138 @@ Testing algorithm with different key values.
 
 ## PROGRAM:
 ```
-#include <stdio.h>
-#include <ctype.h>
 
-#define SIZE 5
+
+#include<stdio.h>
+#include<conio.h>
+#include<string.h>
+#include<ctype.h>
+#define MX 5
+
+void playfair(char ch1, char ch2, char key[MX][MX])
+{
+    int i, j, w, x, y, z;
+    FILE *out;
+    if ((out = fopen("cipher.txt", "a+")) == NULL)
+    {
+        printf("File Corrupted.");
+    }
+    for (i = 0; i < MX; i++)
+    {
+        for (j = 0; j < MX; j++)
+        {
+            if (ch1 == key[i][j])
+            {
+                w = i;
+                x = j;
+            }
+            else if (ch2 == key[i][j])
+            {
+                y = i;
+                z = j;
+            }
+        }
+    }
+    if (w == y)
+    {
+        x = (x + 1) % 5;
+        z = (z + 1) % 5;
+        printf("%c%c", key[w][x], key[y][z]);
+        fprintf(out, "%c%c", key[w][x], key[y][z]);
+    } 
+    else if (x == z) 
+    {
+        w = (w + 1) % 5;
+        y = (y + 1) % 5;
+        printf("%c%c", key[w][x], key[y][z]);
+        fprintf(out, "%c%c", key[w][x], key[y][z]);
+    } 
+    else 
+    {
+        printf("%c%c", key[w][z], key[y][x]);
+        fprintf(out, "%c%c", key[w][z], key[y][x]);
+    }
+    fclose(out);
+}
 
 int main() 
 {
-    char key[SIZE * SIZE];
-    char plaintext[100];
-    char ciphertext[100];
-    char keyMatrix[SIZE][SIZE];
-
-    printf("Enter the key: ");
-    scanf("%s", key);
-
-    int k = 0;
-    char alphabet[26] = "ABCDEFGHIKLMNOPQRSTUVWXYZ";
-    for (int i = 0; i < SIZE; ++i)
+    int i, j, k = 0, l, m = 0, n;
+    char key[MX][MX], keyminus[25], keystr[10], str[25] = {0};
+    char alpa[26] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
+    printf("\nEnter key:");
+    gets(keystr);
+    printf("\nEnter the plain text:");
+    gets(str);
+    n = strlen(keystr);
+    for (i = 0; i < n; i++) 
     {
-        for (int j = 0; j < SIZE; ++j) 
+        if (keystr[i] == 'j') keystr[i] = 'i';
+        else if (keystr[i] == 'J') keystr[i] = 'I';
+        keystr[i] = toupper(keystr[i]);
+    }
+    for (i = 0; i < strlen(str); i++) {
+        if (str[i] == 'j') str[i] = 'i';
+        else if (str[i] == 'J') str[i] = 'I';
+        str[i] = toupper(str[i]);
+    }
+    j = 0;
+    for (i = 0; i < 26; i++)
+    {
+        for (k = 0; k < n; k++)
         {
-            if (k < 25) 
+            if (keystr[k] == alpa[i]) break;
+            else if (alpa[i] == 'J') break;
+        }
+        if (k == n)
+        {
+            keyminus[j] = alpa[i];
+            j++;
+        }
+    }
+    k = 0;
+    for (i = 0; i < MX; i++) 
+    {
+        for (j = 0; j < MX; j++)
+        {
+            if (k < n)
             {
-                keyMatrix[i][j] = key[k++];
+                key[i][j] = keystr[k];
+                k++;
             } 
+            else
+            {
+                key[i][j] = keyminus[m];
+                m++;
+            }
+            printf("%c ", key[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n\nEntered text :%s\nCipher Text :",str);
+    for (i = 0; i < strlen(str); i++) 
+    {
+        if (str[i] == 'J') str[i] = 'I';
+        if (str[i + 1] == '\0') playfair(str[i], 'X', key);
+        else
+        {
+            if (str[i + 1] == 'J') str[i + 1] = 'I';
+            if (str[i] == str[i + 1]) playfair(str[i], 'X', key);
             else 
             {
-                keyMatrix[i][j] = alphabet[k - 25];
+                playfair(str[i], str[i + 1], key);
+                i++;
             }
         }
+  
     }
-
-    printf("Enter plaintext: ");
-    scanf("%s", plaintext);
-
-    k = 0;
-    while (plaintext[k] != '\0')
-    {
-        char a = plaintext[k++];
-        char b = plaintext[k++];
-
-        int rowA, colA, rowB, colB;
-        for (int i = 0; i < SIZE; ++i)
-        {
-            for (int j = 0; j < SIZE; ++j)
-            {
-                if (keyMatrix[i][j] == a)
-                {
-                    rowA = i;
-                    colA = j;
-                }
-                if (keyMatrix[i][j] == b)
-                {
-                    rowB = i;
-                    colB = j;
-                }
-            }
-        }
-
-        if (rowA == rowB)
-        {
-            ciphertext[k - 2] = keyMatrix[rowA][(colA + 1) % SIZE];
-            ciphertext[k - 1] = keyMatrix[rowB][(colB + 1) % SIZE];
-        } 
-        else if (colA == colB)
-        {
-            ciphertext[k - 2] = keyMatrix[(rowA + 1) % SIZE][colA];
-            ciphertext[k - 1] = keyMatrix[(rowB + 1) % SIZE][colB];
-        } 
-        else 
-        {
-            ciphertext[k - 2] = keyMatrix[rowA][colB];
-            ciphertext[k - 1] = keyMatrix[rowB][colA];
-        }
-    }
-
-    ciphertext[k] = '\0';
-
-    printf("Ciphertext: %s\n", ciphertext);
-
+     printf("\nDecrypted text:%s",str);
     return 0;
 }
 ```
 ## OUTPUT:
-![image](https://github.com/mahishasivakumar/Cryptography---19CS412-classical-techqniques/assets/119559812/c486c951-98e5-4c17-b415-11505179f6fe)
+![image](https://github.com/mahishasivakumar/Cryptography---19CS412-classical-techqniques/assets/119559812/80904bce-bec9-4f7e-8c57-21a0aa622ca9)
+
 
 ## RESULT:
 The program is executed successfully
